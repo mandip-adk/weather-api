@@ -1,0 +1,53 @@
+# Environment variables
+.env
+.env.*
+
+#  Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+#  Virtual environment
+venv/
+env/
+ENV/
+.venv/
+
+#  Database
+db.sqlite3
+db.sqlite3-journal
+
+#  Logs
+*.log
+
+# Coverage / testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+#  IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+#  OS files
+.DS_Store
+Thumbs.db
+
+#  Python build files
+build/
+dist/
+*.egg-info/
+
+#  Secret files
+*.key
+*.pem
+
+
+#  Django stuff
+*.pot
+*.mo
+
+#  dotenv backup files
+.env.backup
