@@ -1,8 +1,9 @@
 import requests
 from django.conf import settings
+from .exceptions import CityNotFoundError, WeatherServiceError, GeocodingServiceError
 
 def get_coordinates(city: str) -> dict:
-##Convert city name to lat/lon using geocoding API
+    # building params never fails — no try needed here
     url = "http://api.openweathermap.org/geo/1.0/direct"
     params = {
         'q': city,
@@ -10,17 +11,21 @@ def get_coordinates(city: str) -> dict:
         'appid': settings.OPENWEATHER_API_KEY
     }
 
+    # try wraps ONLY the network call — this is where failures happen
     try:
-        response = requests.get(url, params= params, timeout=5)
+        response = requests.get(url, params=params, timeout=5)
         response.raise_for_status()
         data = response.json()
-    except requests.exceptions.RequestExceptoin:
-        return None
-    
+
+    except requests.Timeout:
+        raise GeocodingServiceError("Geocoding API timed out")
+
+    except requests.RequestException:
+        raise GeocodingServiceError("Geocoding API unreachable")
 
     if not data:
-        return {"error": "City not found"}
-    
+        raise CityNotFoundError(f"City '{city}' not found")
+
     return {
         'lat': data[0]['lat'],
         'lon': data[0]['lon'],
@@ -32,24 +37,24 @@ def get_weather (city: str) -> dict:
 #Main service function — takes city, returns clean weather data
     location = get_coordinates(city)
 
-    if location is None:
-        return {"error": "City not found"}
-    
-    url = "https://api.openweathermap.org/data/2.5/weather" #fetch weather using lat/lon
-    params = {
-        'lat': location['lat'],
-        'lon': location['lon'],
-        'appid': settings.OPENWEATHER_API_KEY,
-        'units': 'metric'
-    }
-
     try:
+    
+        url = "https://api.openweathermap.org/data/2.5/weather" #fetch weather using lat/lon
+        params = {
+            'lat': location['lat'],
+            'lon': location['lon'],
+            'appid': settings.OPENWEATHER_API_KEY,
+            'units': 'metric'
+        }
+
         response = requests.get(url, params=params, timeout=5)
         response.raise_for_status()
         data = response.json()
-    except requests.exceptions.RequestException:
-        return None
+    except requests.Timeout:
+        raise WeatherServiceError("Weather API timed out")
 
+    except requests.RequestException:
+        raise WeatherServiceError("Weather API unreachable")
 
     return{
         'city': location['city'],
@@ -68,23 +73,25 @@ def get_weather (city: str) -> dict:
 def get_forecast(city: str, days: int = 5) -> dict:
 
     location = get_coordinates(city)
-    if location is None:
-        return None
     
-    # call forecast endpoint 
-    url = "https://api.openweathermap.org/data/2.5/forecast"
-    params = {
-        'lat' : location['lat'],
-        'lon' : location['lon'],
-        'appid' : settings.OPENWEATHER_API_KEY,
-        'units' : 'metric'
-    }
+    try:
+        url = "https://api.openweathermap.org/data/2.5/forecast"
+        params = {
+            'lat': location['lat'],
+            'lon': location['lon'],
+            'appid': settings.OPENWEATHER_API_KEY,
+            'units': 'metric'
+        }
 
-    response = requests.get(url, params=params)
-    if response.status_code != 200:
-        return None
-    
-    data = response.json()
+        response = requests.get(url, params=params, timeout=5)
+        response.raise_for_status()
+        data = response.json()
+
+    except requests.Timeout:
+        raise WeatherServiceError("Forecast API timed out")
+
+    except requests.RequestException:
+        raise WeatherServiceError("Forecast API unreachable")
 
     #calcu how many entries to return
     max_entries = days * 8
