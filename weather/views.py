@@ -2,8 +2,12 @@ from rest_framework.views import  APIView
 from rest_framework.response import Response
 from .services import get_weather, get_forecast
 from .exceptions import CityNotFoundError, WeatherServiceError, GeocodingServiceError
+from .throttles import WeatherAnonThrottle, WeatherUserThrottle
+
 
 class CurrentWeatherView(APIView):
+    throttle_classes = [WeatherAnonThrottle, WeatherUserThrottle]
+
     def get(self, request):
         city = request.query_params.get('city', 'kathmandu')
 
@@ -19,6 +23,8 @@ class CurrentWeatherView(APIView):
     
 
 class ForecastView(APIView):
+    throttle_classes = [WeatherAnonThrottle, WeatherUserThrottle]
+
     def get(self, request):
         city = request.query_params.get('city', 'kathmandu')
         days = request.query_params.get ('days', 5) 
