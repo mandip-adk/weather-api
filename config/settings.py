@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'weather',
+    'weather.apps.WeatherConfig',
 ]
 
 REST_FRAMEWORK ={
@@ -50,6 +50,20 @@ REST_FRAMEWORK ={
         'annon': '10/minute',
         'user': '100/minute',
     }
+}
+
+LOGGING = {
+    'version' : 1,
+    'disable_existing_loggers' : False,
+    'handlers' : {
+        'console' : {
+            'class' : 'logging.StreamHandler',
+        },
+    },
+    'root' : {
+        'handlers' : ['console'],
+        'level' : 'INFO',
+    },
 }
 
 MIDDLEWARE = [
