@@ -3,10 +3,20 @@ from rest_framework.response import Response
 from .services import get_weather, get_forecast
 from .exceptions import CityNotFoundError, WeatherServiceError, GeocodingServiceError
 from .throttles import WeatherAnonThrottle, WeatherUserThrottle
+from rest_framework.permissions import AllowAny
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 
 class CurrentWeatherView(APIView):
+    permission_classes = [AllowAny]
     throttle_classes = [WeatherAnonThrottle, WeatherUserThrottle]
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='city', type=str, description='City name', required=False),
+        ],
+        description= 'Get current weather for a city. Example: /api/weather/?city=London'        
+    )
 
     def get(self, request):
         city = request.query_params.get('city', 'kathmandu')
@@ -23,8 +33,16 @@ class CurrentWeatherView(APIView):
     
 
 class ForecastView(APIView):
+    permission_classes = [AllowAny]
     throttle_classes = [WeatherAnonThrottle, WeatherUserThrottle]
 
+    @extend_schema(
+            parameters=[
+                OpenApiParameter(name='city', type=str, description='City name', required=False),
+                OpenApiParameter(name = 'days', type=int, description='Number of days 1-5', required=False),
+            ],
+            description= 'Get weather forecast. Example: /api/forecast/?city=London&days=3'
+    )
     def get(self, request):
         city = request.query_params.get('city', 'kathmandu')
         days = request.query_params.get ('days', 5) 
