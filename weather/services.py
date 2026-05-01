@@ -34,7 +34,16 @@ def get_coordinates(city: str) -> dict:
     }
 
 def get_weather (city: str) -> dict:
+    from django.core.cache import cache 
 #Main service function — takes city, returns clean weather data
+    
+    #check cache first
+    cache_key = f"weather_{city.lower().strip().replace(' ','_')}"
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
+    
+    #cache miss- called external api
     location = get_coordinates(city)
 
     try:
@@ -56,7 +65,7 @@ def get_weather (city: str) -> dict:
     except requests.RequestException:
         raise WeatherServiceError("Weather API unreachable")
 
-    return{
+    clean_data = {
         'city': location['city'],
         'country': location['country'],
         'lat': location['lat'],
@@ -67,10 +76,21 @@ def get_weather (city: str) -> dict:
         'temp_max': data.get('main', {}).get('temp_max'),
         'humidity': data.get('main', {}).get('humidity'),
         'condition': data.get('weather', [{}])[0].get('main'),
+        
 
     }
+    cache.set(cache_key, clean_data, timeout = 1800) #save to cache -30min
+
+    return clean_data
 
 def get_forecast(city: str, days: int = 5) -> dict:
+    from django.core.cache import cache 
+    cache_key = f"forecast_{city.lower().strip().replace(' ','_')}_{days}"
+    cached = cache.get(cache_key)
+    if cached:
+        cached['from_cache'] = True
+        return cached
+    
 
     location = get_coordinates(city)
     
@@ -106,11 +126,15 @@ def get_forecast(city: str, days: int = 5) -> dict:
             'condition': entry['weather'][0]['main'],
         })
     
-    return {
+    clean_data = {
         'city': location['city'],
         'country': location['country'],
         'days': days,       # show user what they requested
         'total_entries': len(forecast_list), 
         'forecast': forecast_list        
     }
+
+    cache.set(cache_key, clean_data, timeout=1800)
+
+    return clean_data
 
