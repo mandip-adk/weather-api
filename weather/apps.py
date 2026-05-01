@@ -9,6 +9,6 @@ class WeatherConfig(AppConfig):
         #runs once when django starts
         if os.environ.get ('RUN_MAIN') == 'true':
 
-            from .task import start_background_task
+            from .tasks import start_background_task
             start_background_task()
         
