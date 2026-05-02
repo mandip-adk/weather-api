@@ -30,6 +30,12 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS','').split(',')
 
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    "https://weather-api-ugdj.onrender.com",
+]
+
 # Application definition
 
 INSTALLED_APPS = [
