@@ -5,6 +5,7 @@ from .exceptions import CityNotFoundError, WeatherServiceError, GeocodingService
 from .throttles import WeatherAnonThrottle, WeatherUserThrottle
 from rest_framework.permissions import AllowAny
 from drf_spectacular.utils import extend_schema, OpenApiParameter
+from rest_framework.decorators import api_view
 
 
 class CurrentWeatherView(APIView):
@@ -65,5 +66,23 @@ class ForecastView(APIView):
 
         except (WeatherServiceError, GeocodingServiceError) as e:
             return Response({"error": str(e)}, status=503)
-        
+
+
+
+@api_view(['GET'])
+def api_root(request):
+    return Response({
+        "message": "Welcome to Weather API",
+        "usage": {
+            "current_weather": "https://weather-api-ugdj.onrender.com/api/weather/?city=London",
+            "forecast": "https://weather-api-ugdj.onrender.com/api/forecast/?city=London&days=3",
+            "interactive_docs": "https://weather-api-ugdj.onrender.com/api/docs/"
+        },
+        "examples": {
+            "kathmandu": "https://weather-api-ugdj.onrender.com/api/weather/?city=Kathmandu",
+            "tokyo": "https://weather-api-ugdj.onrender.com/api/weather/?city=Tokyo",
+            "london": "https://weather-api-ugdj.onrender.com/api/weather/?city=London",
+        },
+        "note": "Change the city parameter to any city in the world"
+    })       
     
