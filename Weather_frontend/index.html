@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Windrose — Weather Station Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <span class="eyebrow">TRACK THE SKY </span>
+      <h1 class="wordmark">Windrose</h1>
+    </header>
+
+    <form class="search" id="searchForm">
+      <input type="text" id="cityInput" placeholder="Search a station — e.g. Kathmandu" autocomplete="off" />
+      <button type="submit">Enter ⏎</button>
+    </form>
+
+    <main>
+      <p class="status" id="statusMessage" hidden></p>
+
+      <section class="card" id="weatherCard" hidden>
+        <div class="card-head">
+          <h2 id="cityName">—</h2>
+          <span id="dateTime">—</span>
+        </div>
+
+        <div class="card-main">
+          <div class="temp-block">
+            <span class="temp" id="temperature">—</span>
+            <div class="mercury">
+              <div class="mercury-track">
+                <div class="mercury-marker" id="mercuryMarker"></div>
+              </div>
+            </div>
+          </div>
+          <div class="condition">
+            <div class="condition-icon" id="conditionIcon"></div>
+            <span id="conditionText">—</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <dl class="readout">
+          <div class="readout-row">
+            <dt>Feels like</dt>
+            <dd id="feelsLike">—</dd>
+          </div>
+          <div class="readout-row">
+            <dt>Humidity</dt>
+            <dd id="humidity">—</dd>
+          </div>
+          <div class="readout-row">
+            <dt>Range</dt>
+            <dd id="range">—</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="forecast" id="forecastStrip" hidden></section>
+    </main>
+
+    <footer class="footer">
+      Built on a Django REST API · <a href="https://weather-api-ugdj.onrender.com/api/docs/" target="_blank" rel="noopener">view API docs</a>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

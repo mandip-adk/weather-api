@@ -1,48 +1,82 @@
 # Weather API
 
-A Django REST Framework API that provides current weather and 5-day forecasts using the OpenWeatherMap API. Built with a clean service layer, caching, rate limiting, background tasks, and auto-generated Swagger documentation.
+A Django REST Framework API that provides current weather and 5-day forecasts using the OpenWeatherMap API. Built with a clean service layer, caching, rate limiting, background tasks, and auto-generated Swagger documentation. Includes a vanilla HTML/CSS/JS frontend that consumes the live API.
+
+---
+
+## Live Demo
+
+| | |
+|---|---|
+| 🌐 Frontend (Windrose) | https://windrose-weather.netlify.app |
+| ⚙️ API base URL | https://weather-api-ugdj.onrender.com |
+| 📘 Interactive API docs (Swagger) | https://weather-api-ugdj.onrender.com/api/docs/ |
+
+> Note: the backend is on Render's free tier, so the first request after a period of inactivity may take 30-50 seconds to wake up.
 
 ---
 
 ## Features
 
+**Backend**
 - Current weather by city name
 - 5-day forecast with day filtering
 - Geocoding — converts city name to lat/lon for accurate results
 - In-memory caching with 30 minute TTL
 - Background task that pre-warms cache for popular cities on startup
-- Rate limiting — 10 requests/min for anonymous users
+- Rate limiting — 5 requests/min for anonymous users on weather endpoints
 - Custom error handling with meaningful error messages
+- CORS enabled so any frontend can call the API
 - Auto-generated Swagger UI documentation
+- JWT authentication available (weather endpoints are public, kept open since weather data isn't sensitive)
+
+**Frontend**
+- Search any city worldwide
+- Current conditions with a temperature "mercury" indicator
+- 5-day forecast strip
+- Hand-drawn SVG weather icons (no external icon library)
+- Fully responsive, works down to mobile widths
 
 ---
 
 ## Tech Stack
 
-- Python 3.13
-- Django 6.0
-- Django REST Framework
+**Backend**
+- Python 3.13, Django 6.0, Django REST Framework
 - OpenWeatherMap API (Geocoding + Weather + Forecast)
 - drf-spectacular (Swagger UI)
-- SimpleJWT (authentication)
+- djangorestframework-simplejwt (authentication)
+- django-cors-headers (cross-origin requests from the frontend)
+- gunicorn + whitenoise (production server + static files)
+- Deployed on Render
+
+**Frontend**
+- HTML, CSS, vanilla JavaScript (no framework, no build step)
+- Fetches data directly from the deployed Render API
+- Deployed on Netlify
 
 ---
 
 ## Project Structure
 
 ```
-weather_project/
+weather_api/
 ├── config/
 │   ├── settings.py
 │   └── urls.py
 ├── weather/
-│   ├── apps.py           # starts background task on server boot
-│   ├── exceptions.py     # custom exceptions
-│   ├── urls.py           # paths 
-│   ├── services.py       # all business logic and external API calls
-│   ├── tasks.py          # background cache warming task
-│   ├── throttles.py      # custom rate limit classes
-│   └── views.py          # thin views, request/response only
+│   ├── apps.py             # starts background task on server boot
+│   ├── exceptions.py       # custom exceptions
+│   ├── urls.py             # app-level routes
+│   ├── services.py         # business logic and external API calls
+│   ├── tasks.py            # background cache-warming task
+│   ├── throttles.py        # custom rate limit classes
+│   └── views.py            # thin views, request/response only
+├── weather_frontend/
+│   ├── index.html
+│   ├── style.css
+│   └── script.js
+├── build.sh                # Render build script
 ├── .env
 ├── manage.py
 └── requirements.txt
@@ -50,7 +84,7 @@ weather_project/
 
 ---
 
-## Setup
+## Setup (run it locally)
 
 ### 1. Clone the repository
 
@@ -85,6 +119,9 @@ Sign up at [openweathermap.org](https://openweathermap.org/api) and get a free A
 
 ```
 OPENWEATHER_API_KEY=your_api_key_here
+SECRET_KEY=your_django_secret_key
+DEBUG=True
+ALLOWED_HOSTS=127.0.0.1,localhost
 ```
 
 ### 6. Run migrations
@@ -93,11 +130,15 @@ OPENWEATHER_API_KEY=your_api_key_here
 python manage.py migrate
 ```
 
-### 7. Start the server
+### 7. Start the backend
 
 ```bash
 python manage.py runserver
 ```
+
+### 8. Run the frontend
+
+Open `weather_frontend/index.html` directly in your browser (or use the VS Code "Live Server" extension). It's already pointed at the live Render API, so it works without running the backend locally too — but if you want it to call your local server instead, change `API_BASE` in `script.js` to `http://127.0.0.1:8000`.
 
 ---
 
@@ -208,6 +249,8 @@ POST /api/token/refresh/  # get new access token
 }
 ```
 
+> Weather and forecast endpoints don't require a token — they're public, since weather data isn't sensitive. JWT is set up and ready for any future private endpoints (e.g. saved cities per user).
+
 ---
 
 ## Error Responses
@@ -224,9 +267,9 @@ POST /api/token/refresh/  # get new access token
 ## Rate Limiting
 
 | User Type        | Limit         |
-|------------------|---------------|
-| Anonymous users  | 5 per minute  |
-| Authenticated    | 30 per minute |
+|-------------------|---------------|
+| Anonymous users   | 5 per minute  |
+| Authenticated     | 30 per minute |
 
 ---
 
@@ -244,21 +287,25 @@ This means first requests for these cities are served instantly from cache.
 
 ---
 
-## API Documentation
+## Deployment
 
-Interactive Swagger UI is available at:
+| | Platform | Notes |
+|---|---|---|
+| Backend  | Render   | gunicorn + whitenoise, env vars set in Render dashboard |
+| Frontend | Netlify  | static deploy, no build step needed |
 
-```
-http://127.0.0.1:8000/api/docs/
-```
+CORS is enabled on the backend (`django-cors-headers`) so the Netlify-hosted frontend — or any other origin — can call the API directly.
 
 ---
 
 ## Environment Variables
 
-| Variable             | Description                        |
-|----------------------|------------------------------------|
-| OPENWEATHER_API_KEY  | Your OpenWeatherMap API key        |
+| Variable             | Description                            |
+|-----------------------|-----------------------------------------|
+| OPENWEATHER_API_KEY  | Your OpenWeatherMap API key             |
+| SECRET_KEY           | Django secret key                       |
+| DEBUG                | `True` locally, `False` in production   |
+| ALLOWED_HOSTS        | Comma-separated allowed hostnames       |
 
 ---
 
@@ -273,5 +320,6 @@ http://127.0.0.1:8000/api/docs/
 ---
 
 ## 👤 Author
-**Mandip Adhikari**  
+**Mandip Adhikari**
 GitHub: https://github.com/mandip-adk
+
